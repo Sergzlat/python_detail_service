@@ -1,7 +1,21 @@
+from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 from models import DetailL
 from services import DetailLService
 from mappers import DetailLMapper
+
+app = Flask(__name__)
+db = SQLAlchemy(app)
+
+class DetailLController:
+    def __init__(self):
+        self.service = DetailLService()
+        self.mapper = DetailLMapper()
+
+    @app.route('/api/detail_l', methods=['GET'])
+    def get_detail_l():
+        detail_l = self.service.get_detail_l()
+        return jsonify(self.mapper.map(detail_l, DetailLResponse)), 201
 
 class DetailLController:
     def __init__(self, context):
