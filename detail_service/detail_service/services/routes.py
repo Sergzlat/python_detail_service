@@ -1,32 +1,38 @@
 from flask import Blueprint
 from .controller import DetailLController
+from flask_sqlalchemy import SQLAlchemy
+from models import DetailL
+
+app = Flask(__name__)
+db = SQLAlchemy(app)
 
 detail_l_bp = Blueprint('detail_l', __name__)
 
 @detail_l_bp.route('/api/detail_l', methods=['POST'])
 def add_detail_l():
-    return DetailLController.add_detail_l()
+    return DetailLController().add_detail_l()
 
 @detail_l_bp.route('/api/detail_l', methods=['GET'])
 def get_all_detail_ls():
-    return DetailLController.get_all_detail_ls()
+    return DetailLController().get_all_detail_ls()
 
 @detail_l_bp.route('/api/detail_l/<int:id>', methods=['GET'])
 def get_detail_l(id):
-    return DetailLController.get_detail_l(id)
+    return DetailLController().get_detail_l(id)
 
 @detail_l_bp.route('/api/detail_l/<int:id>', methods=['PUT'])
 def update_detail_l(id):
-    return DetailLController.update_detail_l(id)
+    return DetailLController().update_detail_l(id)
 
 @detail_l_bp.route('/api/detail_l/<int:id>', methods=['DELETE'])
 def delete_detail_l(id):
-    return DetailLController.delete_detail_l(id)
+    return DetailLController().delete_detail_l(id)
 
 @detail_l_bp.route('/api/detail_l/<int:id>/restore', methods=['PUT'])
 def restore_detail_l(id):
-    return DetailLController.restore_detail_l(id)
+    return DetailLController().restore_detail_l(id)
 
+# Ваш код FastAPI остается без изменений
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -35,12 +41,10 @@ from .crud import create_nextdetail, get_nextdetail, get_nextdetails, update_nex
 
 router = APIRouter()
 
-
 @router.get("/", response_model=List[schemas.Nextdetail])
 def read_nextdetails(skip: int = 0, limit: int = 10, db: Session = Depends(dependencies.get_db)):
     nextdetails = get_nextdetails(db, skip=skip, limit=limit)
     return nextdetails
-
 
 @router.get("/{nextdetail_id}", response_model=schemas.Nextdetail)
 def read_nextdetail(nextdetail_id: int, db: Session = Depends(dependencies.get_db)):
@@ -49,11 +53,9 @@ def read_nextdetail(nextdetail_id: int, db: Session = Depends(dependencies.get_d
         raise HTTPException(status_code=404, detail="Nextdetail not found")
     return db_nextdetail
 
-
 @router.post("/", response_model=schemas.Nextdetail)
 def create_nextdetail(nextdetail: schemas.NextdetailCreate, db: Session = Depends(dependencies.get_db)):
     return create_nextdetail(db=db, nextdetail=nextdetail)
-
 
 @router.put("/{nextdetail_id}", response_model=schemas.Nextdetail)
 def update_nextdetail(nextdetail_id: int, nextdetail: schemas.NextdetailUpdate, db: Session = Depends(dependencies.get_db)):
@@ -62,15 +64,12 @@ def update_nextdetail(nextdetail_id: int, nextdetail: schemas.NextdetailUpdate, 
         raise HTTPException(status_code=404, detail="Nextdetail not found")
     return db_nextdetail
 
-
 @router.delete("/{nextdetail_id}", response_model=schemas.Nextdetail)
 def delete_nextdetail(nextdetail_id: int, db: Session = Depends(dependencies.get_db)):
     db_nextdetail = delete_nextdetail(db=db, nextdetail_id=nextdetail_id)
     if db_nextdetail is None:
         raise HTTPException(status_code=404, detail="Nextdetail not found")
     return db_nextdetail
-python
-# dependencies.py
 
 from sqlalchemy.orm import Session
 from .crud import get_db
