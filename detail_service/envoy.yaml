@@ -1,0 +1,130 @@
+yaml
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address:
+          protocol: TCP
+          address: 0.0.0.0
+          port_value: 10000
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
+                stat_prefix: ingress_http
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/detailL"
+                          route:
+                            prefix_rewrite: "/api/detailL"
+                            cluster: bolt_detailL_service
+                        - match:
+                            prefix: "/nextdetail"
+                          route:
+                            prefix_rewrite: "/api/nextdetail"
+                            cluster: bolt_nextdetail_service
+                        - match:
+                            prefix: "/mail"
+                          route:
+                            prefix_rewrite: "/api/mail"
+                            cluster: bolt_mail_service
+                        - match:
+                            prefix: "/picture"
+                          route:
+                            prefix_rewrite: "/api/picture"
+                            cluster: bolt_picture_service
+                        - match:
+                            prefix: "/auth"
+                          route:
+                            prefix_rewrite: "/api/auth"
+                            cluster: bolt_auth_service
+                        - match:
+                            prefix: "/predict"
+                          route:
+                            prefix_rewrite: "/api/Predict"
+                            cluster: bolt_predict_service
+
+  clusters:
+    - name: bolt_detailL_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: bolt_detailL_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: detailL_service
+                      port_value: 80
+
+    - name: bolt_nextdetail_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: bolt_nextdetail_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: nextdetail_service
+                      port_value: 80
+
+    - name: bolt_mail_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: bolt_mail_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: bolt_mail_service
+                    address: Nextdetail_service
+                    port_value: 80
+
+    - name: bolt_picture_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: bolt_picture_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: picture_service
+                      port_value: 80
+
+    - name: bolt_auth_service
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: bolt_auth_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: auth_service
+                      port_value: 80

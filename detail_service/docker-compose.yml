@@ -1,0 +1,124 @@
+yaml
+version: '3.8'
+
+services:
+  envoygateway:
+    image: envoyproxy/envoy:v1.14.1
+    ports:
+      - "9901:9901"
+      - "10000:10000"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+
+  detailL_database:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=detailL_db
+    volumes:
+      - detailL-db-volume:/var/lib/postgresql/data
+
+  detailL_service:
+    image: ikomarenko/bolt-detailL-service
+    ports:
+      - "10001:80"
+    depends_on:
+      - detailL_database
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DetailLDbConnectionString=Host=detailL_database;Username=postgres;Password=password;Database=detailL_db;
+      - AuthServiceConnection=http://bolt_auth_service:80/api/auth
+
+  nextdetail_database:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=nextdetail_db
+    volumes:
+      - nextdetail-db-volume:/var/lib/postgresql/data
+
+  nextdetail_service:
+    image: ikomarenko/bolt-nextdetail-service
+    ports:
+      - "10002:80"
+    depends_on:
+      - nextdetail_database
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - NextdetailDbConnectionString=Host=nextdetail_database;Username=postgres;Password=password;Database=nextdetail_db;
+      - AuthServiceConnection=http://bolt_auth_service:80/api/auth
+
+  picture_database:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=picture_db
+    volumes:
+      - picture-db-volume:/var/lib/postgresql/data
+
+  picture_service:
+    image: ikomarenko/bolt-picture-service
+    ports:
+      - "10003:80"
+    depends_on:
+      - picture_database
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - PictureDbConnectionString=Host=picture_database;Username=postgres;Password=password;Database=picture_db;
+
+  mail_service:
+    image: ikomarenko/bolt-mail-service
+    ports:
+      - "10004:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+
+  user_database:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=user_db
+    volumes:
+      - user-db-volume:/var/lib/postgresql/data
+
+  auth_service:
+    image: ikomarenko/bolt-auth-service
+    ports:
+      - "10005:80"
+    depends_on:
+      - user_database
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - UserDbConnectionString=Host=user_database;Username=postgres;Password=password;Database=user_db;
+      - MailServiceConnection=http://mail_service:80/api/mail
+
+volumes:
+  detailL-db-volume:
+    driver: local
+  nextdetail-db-volume:
+    driver: local
+  picture-db-volume:
+    driver: local
+  user-db-volume:
+    driver: local
