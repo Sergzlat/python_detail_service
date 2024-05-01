@@ -1,6 +1,11 @@
 from flask import request, jsonify
 from mapper import Mapper
 from detail_l_context import DetailLContext
+from flask_sqlalchemy import SQLAlchemy
+from models import DetailL
+
+app = Flask(__name__)
+db = SQLAlchemy(app)
 
 class DetailLController:
     def __init__(self):
